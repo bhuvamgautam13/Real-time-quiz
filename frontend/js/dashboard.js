@@ -1,22 +1,20 @@
 document.addEventListener('DOMContentLoaded', async () => {
+  if (!requireAuth()) return;
 
   const params = new URLSearchParams(window.location.search);
   const googleToken = params.get('token');
 
+if (googleToken) {
+  console.log("Saving Google token...");
 
-  if (googleToken) {
-    console.log("Saving Google token...");
+  
+  localStorage.setItem('token', googleToken);
 
-    localStorage.setItem('token', googleToken);
+  
+  window.history.replaceState({}, document.title, '/pages/dashboard.html');
 
-    
-    window.location.href = '/pages/dashboard.html';
-    return;
-  }
-
-
-  if (!requireAuth()) return;
-
+  
+}
   await Promise.all([loadProfile(), loadMyScores()]);
   connectLiveFeed();
 });

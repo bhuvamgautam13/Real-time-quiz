@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const googleToken = params.get('token');
   if (googleToken) {
     localStorage.setItem('token', googleToken);
+    localStorage.setItem('user', JSON.stringify(data.user));
     window.location.href = '/pages/dashboard.html';
     return;
   }
@@ -49,9 +50,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (data.success) {
         localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
         setUser(data.user);
         showToast('Account created! Redirecting...', 'success');
         setTimeout(() => window.location.href = '/pages/dashboard.html', 1500);
+        if (data.success) {
+ 
+  
+
+  
+}
       } else {
         showToast(data.message || 'Signup failed.', 'error');
         btn.disabled = false;
@@ -78,6 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (data?.success) {
         localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
         setUser(data.user);
         showToast('Welcome back!', 'success');
         setTimeout(() => window.location.href = '/pages/dashboard.html', 1200);

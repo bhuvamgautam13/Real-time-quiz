@@ -43,6 +43,11 @@
     <div class="auth-footer">No account? <a href="/pages/signup.html">Create one free →</a></div>
   </div>
   <div class="toast-container" id="toastContainer"></div>
+  <script>if (isLoggedIn()) {
+  window.location.href = '/pages/dashboard.html';
+}
+</script>
+
   <script src="/js/utils.js"></script>
   <script src="/js/auth.js"></script>
 </body>

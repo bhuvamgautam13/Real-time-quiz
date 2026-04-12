@@ -48,7 +48,21 @@ const apiRequest = async (url, options = {}) => {
     return null;
   }
 };
+function goToDashboard() {
+  if (!isLoggedIn()) {
+    window.location.href = '/pages/login.html';
+  } else {
+    window.location.href = '/pages/dashboard.html';
+  }
+}
 
+function goToPlay() {
+  if (!isLoggedIn()) {
+    window.location.href = '/pages/login.html';
+  } else {
+    window.location.href = '/pages/quiz.html';
+  }
+}
 const showToast = (message, type = 'info', duration = 3500) => {
   let container = document.getElementById('toastContainer');
   if (!container) {
