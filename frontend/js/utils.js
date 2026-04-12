@@ -4,10 +4,13 @@ const setUser  = (user) => localStorage.setItem('user', JSON.stringify(user));
 const isLoggedIn = () => !!getToken();
 
 const requireAuth = () => {
-  if (!isLoggedIn()) {
+  const token = localStorage.getItem('token');
+
+  if (!token && !window.location.search.includes('token')) {
     window.location.href = '/pages/login.html';
     return false;
   }
+
   return true;
 };
 

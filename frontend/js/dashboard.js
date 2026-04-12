@@ -1,17 +1,25 @@
-const params = new URLSearchParams(window.location.search);
-const token = params.get('token');
-
-if (token) {
-  localStorage.setItem('token', token);
-  window.history.replaceState({}, document.title, '/pages/dashboard.html');
-}
 document.addEventListener('DOMContentLoaded', async () => {
+
+  const params = new URLSearchParams(window.location.search);
+  const googleToken = params.get('token');
+
+
+  if (googleToken) {
+    console.log("Saving Google token...");
+
+    localStorage.setItem('token', googleToken);
+
+    
+    window.location.href = '/pages/dashboard.html';
+    return;
+  }
+
+
   if (!requireAuth()) return;
 
   await Promise.all([loadProfile(), loadMyScores()]);
   connectLiveFeed();
 });
-
 async function loadProfile() {
   const data = await apiRequest('/api/auth/me');
   if (!data?.success) return;

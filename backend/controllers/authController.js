@@ -104,6 +104,7 @@ const login = async (req, res) => {
 const googleCallback = (req, res) => {
   try {
     const token = sendTokenCookie(res, req.user._id);
+
     res.redirect(`/pages/dashboard.html?token=${token}`);
   } catch (error) {
     console.error('Google callback error:', error);

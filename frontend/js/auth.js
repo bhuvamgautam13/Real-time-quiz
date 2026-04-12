@@ -7,9 +7,9 @@ document.addEventListener('DOMContentLoaded', () => {
     return;
   }
 
-  if (isLoggedIn()) {
-    window.location.href = '/pages/dashboard.html';
-  }
+ if (isLoggedIn() && !window.location.search.includes('token')) {
+  window.location.href = '/pages/dashboard.html';
+}
 
   const signupForm = document.getElementById('signupForm');
   if (signupForm) {
