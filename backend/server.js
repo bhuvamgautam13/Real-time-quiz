@@ -23,7 +23,7 @@ const httpServer = http.createServer(app);
 
 const io = new Server(httpServer, {
   cors: {
-    origin: process.env.CLIENT_URL || 'http://localhost:5000',
+    origin: process.env.CLIENT_URL || 'https://real-time-quiz-engine.onrender.com',
     methods: ['GET', 'POST'],
     credentials: true,
   },
@@ -35,7 +35,7 @@ initializeSocket(io);
 app.set('io', io);
 
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:5000',
+  origin: process.env.CLIENT_URL || 'https://real-time-quiz-engine.onrender.com',
   credentials: true,
 }));
 
@@ -136,10 +136,10 @@ const start = async () => {
 
   httpServer.listen(PORT, () => {
     console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log(`🚀  Server running at http://localhost:${PORT}`);
-    console.log(`📄  Frontend: http://localhost:${PORT}/`);
+    console.log(`🚀  Server running at https://real-time-quiz-engine.onrender.com`);
+    console.log(`📄  Frontend: https://real-time-quiz-engine.onrender.com`);
     console.log(`🔌  Socket.io: Active`);
-    console.log(`📡  API Base: http://localhost:${PORT}/api`);
+    console.log(`📡  API Base: https://real-time-quiz-engine.onrender.com/api`);
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
   });
 };
