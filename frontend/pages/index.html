@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>QuizArena — Real-Time Multiplayer Quiz Engine</title>
+  <link rel="stylesheet" href="/css/global.css"/>
+  <style>
+    .hero{position:relative;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:80px 24px;z-index:1;overflow:hidden}
+    .orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:.18;animation:float 8s ease-in-out infinite;pointer-events:none}
+    .orb-1{width:500px;height:500px;background:var(--accent-cyan);top:-200px;left:-200px;animation-delay:0s}
+    .orb-2{width:400px;height:400px;background:var(--accent-purple);bottom:-150px;right:-150px;animation-delay:2s}
+    .orb-3{width:300px;height:300px;background:var(--accent-pink);top:50%;left:60%;animation-delay:4s}
+    @keyframes float{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-30px) scale(1.05)}}
+    .live-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 18px;background:rgba(0,245,255,.07);border:1px solid rgba(0,245,255,.25);border-radius:100px;font-family:var(--font-display);font-size:.78rem;color:var(--accent-cyan);letter-spacing:.1em;margin-bottom:32px}
+    .live-dot{width:8px;height:8px;border-radius:50%;background:var(--accent-green);animation:blink 1.4s step-end infinite}
+    @keyframes blink{50%{opacity:0}}
+    .hero-title{font-size:clamp(3rem,9vw,7.5rem);font-weight:900;letter-spacing:.05em;background:linear-gradient(135deg,#fff 0%,var(--accent-cyan) 45%,var(--accent-purple) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:24px;line-height:1.05}
+    .hero-sub{font-size:clamp(.95rem,2.5vw,1.3rem);color:var(--text-secondary);max-width:580px;margin:0 auto 48px;line-height:1.75}
+    .hero-cta{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-bottom:72px}
+    .btn-xl{padding:16px 44px;font-size:1rem;border-radius:var(--radius-xl)}
+    .stats-bar{display:flex;gap:48px;justify-content:center;flex-wrap:wrap;padding:32px 40px;background:var(--bg-glass);backdrop-filter:blur(20px);border:1px solid var(--border-subtle);border-radius:var(--radius-xl)}
+    .stat-num{font-family:var(--font-display);font-size:2rem;font-weight:700;color:var(--accent-cyan)}
+    .stat-lbl{font-size:.75rem;color:var(--text-muted);letter-spacing:.1em;text-transform:uppercase;margin-top:4px}
+    .section{padding:100px 40px;max-width:1160px;margin:0 auto;position:relative;z-index:1}
+    .section-title{text-align:center;font-size:clamp(1.8rem,4vw,3rem);margin-bottom:12px}
+    .section-sub{text-align:center;color:var(--text-secondary);font-size:1.05rem;margin-bottom:56px}
+    .features-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px}
+    .feat-card{background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:32px;transition:all .3s ease}
+    .feat-card:hover{transform:translateY(-6px);border-color:var(--accent-cyan);box-shadow:0 0 40px rgba(0,245,255,.1)}
+    .feat-icon{font-size:2.2rem;margin-bottom:18px;display:block}
+    .feat-title{font-size:1.05rem;margin-bottom:10px}
+    .feat-desc{color:var(--text-secondary);font-size:.92rem;line-height:1.7}
+    footer{text-align:center;padding:40px;color:var(--text-muted);font-size:.85rem;border-top:1px solid var(--border-subtle);position:relative;z-index:1}
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <a href="/" class="navbar-brand">⚡ QUIZ ARENA</a>
+    <ul class="navbar-nav">
+      <li><a href="/pages/leaderboard.html">Leaderboard</a></li>
+      <li><a href="/pages/login.html" class="btn btn-outline" style="padding:8px 18px;font-size:.8rem">LOGIN</a></li>
+      <li><a href="/pages/signup.html" class="btn btn-primary" style="padding:8px 18px;font-size:.8rem">SIGN UP</a></li>
+    </ul>
+  </nav>
+
+  <section class="hero">
+    <div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div>
+    <div class="live-badge"><span class="live-dot"></span>LIVE — Real-Time Multiplayer Active</div>
+    <h1 class="hero-title">QUIZ<br>ARENA</h1>
+    <p class="hero-sub">Compete globally in real-time. 15 shuffled questions. 60 seconds each. Server-synced timers. Daily leaderboard resets at midnight.</p>
+    <div class="hero-cta">
+      <a href="/pages/signup.html" class="btn btn-primary btn-xl">START PLAYING FREE →</a>
+      <a href="/pages/leaderboard.html" class="btn btn-outline btn-xl">VIEW LEADERBOARD</a>
+    </div>
+    <div class="stats-bar">
+      <div class="stat-item"><div class="stat-num">100+</div><div class="stat-lbl">Questions</div></div>
+      <div class="stat-item"><div class="stat-num">15</div><div class="stat-lbl">Per Session</div></div>
+      <div class="stat-item"><div class="stat-num">60s</div><div class="stat-lbl">Per Question</div></div>
+      <div class="stat-item"><div class="stat-num">LIVE</div><div class="stat-lbl">Leaderboard</div></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2 class="section-title">Built Different</h2>
+    <p class="section-sub">Real-time, cheat-proof, and competitively designed</p>
+    <div class="features-grid">
+      <div class="feat-card"><span class="feat-icon">⚡</span><h3 class="feat-title">Server-Side Timers</h3><p class="feat-desc">60-second countdowns run on the server via Socket.io <code style="color:var(--accent-cyan)">timer-tick</code> events. Zero client manipulation possible.</p></div>
+      <div class="feat-card"><span class="feat-icon">🎲</span><h3 class="feat-title">MongoDB $sample Shuffle</h3><p class="feat-desc">Each session uses <code style="color:var(--accent-cyan)">aggregate([{ $sample: { size: 15 } }])</code> to pick unique random questions at the database level.</p></div>
+      <div class="feat-card"><span class="feat-icon">🏆</span><h3 class="feat-title">Daily Leaderboard</h3><p class="feat-desc">Scores filtered from midnight today. Rankings update in real-time via Socket.io <code style="color:var(--accent-cyan)">new-score-update</code> broadcasts.</p></div>
+      <div class="feat-card"><span class="feat-icon">🔐</span><h3 class="feat-title">JWT + Google OAuth</h3><p class="feat-desc">All quiz routes secured with JWT. Google Sign-In via Passport.js. Rate limiting on all sensitive endpoints.</p></div>
+      <div class="feat-card"><span class="feat-icon">🎯</span><h3 class="feat-title">Time Bonus System</h3><p class="feat-desc">Faster correct answers earn more points. Up to +5 bonus per question based on remaining server time.</p></div>
+      <div class="feat-card"><span class="feat-icon">🏗️</span><h3 class="feat-title">MVC Architecture</h3><p class="feat-desc">Clean separation: Controllers, Models, Routes, Middleware, Utils, Socket layer. Production-grade Node.js structure.</p></div>
+    </div>
+  </section>
+
+  <footer>
+    <p>⚡ QuizArena — Real-Time Multiplayer Quiz Engine</p>
+    <p style="margin-top:8px">Node.js · Express · MongoDB · Socket.io · JWT · Passport.js · Multer</p>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Live Quiz Arena — QuizArena</title>
+  <link rel="stylesheet" href="/css/global.css" />
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* ── Quiz Wrapper ───────────────────────────────────── */
+    .quiz-wrapper {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 28px 20px 48px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .quiz-container {
+      width: 100%;
+      max-width: 740px;
+    }
+
+    /* ── Top Bar ────────────────────────────────────────── */
+    .quiz-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 22px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: var(--r-lg);
+      margin-bottom: 18px;
+      gap: 16px;
+    }
+
+    .q-counter {
+      font-family: var(--font-display);
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      letter-spacing: 0.08em;
+    }
+    .q-counter span { color: var(--accent-cyan); font-size: 1rem; font-weight: 800; }
+
+    .live-score-display {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .live-score-display .score-num {
+      font-family: var(--font-display);
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: var(--accent-cyan);
+      transition: transform 0.2s var(--ease-bounce);
+    }
+    .live-score-display .score-num.bump { transform: scale(1.3); }
+    .live-score-display .score-lbl {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-family: var(--font-display);
+    }
+
+    .rank-display {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--font-display);
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+    .rank-display .rank-num {
+      color: var(--accent-yellow);
+      font-size: 1rem;
+      font-weight: 800;
+    }
+
+    /* ── Progress Bar ───────────────────────────────────── */
+    .quiz-progress {
+      margin-bottom: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .progress-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-family: var(--font-display);
+      letter-spacing: 0.06em;
+    }
+
+    /* ── Timer + Score Row ──────────────────────────────── */
+    .timer-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 40px;
+      margin-bottom: 28px;
+    }
+
+    .timer-ring {
+      position: relative;
+      width: 108px; height: 108px;
+    }
+    .timer-ring svg { transform: rotate(-90deg); display: block; }
+    .timer-ring .timer-text {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-display);
+      font-size: 1.8rem;
+      font-weight: 900;
+      color: var(--text-primary);
+    }
+
+    .score-panel {
+      text-align: center;
+      min-width: 100px;
+    }
+    .score-panel .sp-num {
+      font-family: var(--font-display);
+      font-size: 2.4rem;
+      font-weight: 900;
+      color: var(--accent-cyan);
+      display: block;
+      line-height: 1;
+      transition: transform 0.3s var(--ease-bounce);
+    }
+    .score-panel .sp-num.bump { transform: scale(1.2); color: var(--accent-green); }
+    .score-panel .sp-lbl {
+      font-size: 0.68rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      font-family: var(--font-display);
+      margin-top: 4px;
+    }
+
+    /* ── Question Card ──────────────────────────────────── */
+    .question-card {
+      margin-bottom: 20px;
+      animation: qSlide 0.35s var(--ease) both;
+    }
+
+    @keyframes qSlide {
+      from { opacity: 0; transform: translateX(18px); }
+      to   { opacity: 1; transform: translateX(0);    }
+    }
+
+    .q-meta { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
+
+    .question-text {
+      font-size: clamp(1.05rem, 2.5vw, 1.35rem);
+      line-height: 1.65;
+      font-family: var(--font-body);
+      font-weight: 500;
+    }
+
+    /* ── Options Grid ───────────────────────────────────── */
+    .options-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    @media (max-width: 520px) { .options-grid { grid-template-columns: 1fr; } }
+
+    /* ── Feedback Bar ───────────────────────────────────── */
+    .feedback-points {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 1.05rem;
+    }
+
+    /* ── Results Screen ─────────────────────────────────── */
+    .results-screen {
+      display: none;
+      text-align: center;
+      padding: 52px 36px;
+      animation: resultsIn 0.5s var(--ease-bounce);
+    }
+
+    .results-screen.show { display: block; }
+
+    @keyframes resultsIn {
+      from { opacity: 0; transform: scale(0.92); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+
+    .trophy-big {
+      font-size: 5.5rem;
+      display: block;
+      margin-bottom: 20px;
+      animation: trophyBounce 0.8s 0.3s var(--ease-bounce) both;
+    }
+    @keyframes trophyBounce {
+      from { transform: scale(0) rotate(-15deg); }
+      to   { transform: scale(1) rotate(0); }
+    }
+
+    .results-title { font-size: clamp(1.4rem, 4vw, 2rem); margin-bottom: 6px; }
+    .results-sub   { color: var(--text-secondary); margin-bottom: 8px; }
+
+    .final-score-num {
+      font-family: var(--font-display);
+      font-size: clamp(3.5rem, 10vw, 5.5rem);
+      font-weight: 900;
+      color: var(--accent-cyan);
+      text-shadow: 0 0 40px rgba(0,245,255,0.5);
+      display: block;
+      line-height: 1;
+      margin: 16px 0;
+      animation: countUp 0.5s 0.5s var(--ease) both;
+    }
+    @keyframes countUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .results-stats {
+      display: flex;
+      justify-content: center;
+      gap: 32px;
+      flex-wrap: wrap;
+      margin: 28px 0 36px;
+      padding: 24px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: var(--r-xl);
+    }
+
+    .rs-item .rs-val {
+      font-family: var(--font-display);
+      font-size: 1.7rem;
+      font-weight: 800;
+      display: block;
+      margin-bottom: 4px;
+    }
+    .rs-item .rs-lbl {
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      font-family: var(--font-display);
+    }
+
+    .results-actions {
+      display: flex;
+      justify-content: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    /* ── Loading State ──────────────────────────────────── */
+    .quiz-loading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 80px 20px;
+      gap: 20px;
+    }
+    .quiz-loading h3 {
+      font-size: 1rem;
+      color: var(--text-secondary);
+    }
+
+    /* Connection status badge */
+    .conn-badge {
+      position: fixed;
+      bottom: 20px; right: 20px;
+      display: flex; align-items: center; gap: 7px;
+      padding: 7px 14px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: var(--r-full);
+      font-family: var(--font-display);
+      font-size: 0.68rem;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      z-index: 50;
+      transition: all var(--duration-base) var(--ease);
+    }
+    .conn-badge.connected { border-color: rgba(16,185,129,0.3); color: var(--accent-green); }
+    .conn-badge.disconnected { border-color: rgba(239,68,68,0.3); color: var(--accent-red); }
+  </style>
+</head>
+<body>
+
+  <!-- ── Navbar ──────────────────────────────────────────── -->
+  <nav class="navbar">
+    <a href="/pages/dashboard.html" class="navbar-brand">⚡ QUIZ ARENA</a>
+    <div style="display:flex;align-items:center;gap:20px">
+      <div class="rank-display">
+        🏆 Rank: <span class="rank-num" id="navRank">--</span>
+      </div>
+      <a href="/pages/dashboard.html" class="btn btn-ghost btn-sm">✕ EXIT</a>
+    </div>
+  </nav>
+
+  <!-- ── Quiz Area ────────────────────────────────────────── -->
+  <div class="quiz-wrapper">
+    <div class="quiz-container">
+
+      <!-- Loading State -->
+      <div class="quiz-loading" id="quizLoading">
+        <div class="spinner spinner-lg"></div>
+        <h3>Shuffling your questions...</h3>
+        <p class="text-muted" style="font-size:.85rem">MongoDB $sample is picking 15 random questions</p>
+      </div>
+
+      <!-- ── Active Quiz UI ─────────────────────────────── -->
+      <div id="quizUI" style="display:none">
+
+        <!-- Top Bar -->
+        <div class="quiz-topbar">
+          <div class="q-counter">
+            Q <span id="qNum">1</span> / <span id="qTotal">15</span>
+          </div>
+          <div class="live-score-display">
+            <span class="score-num" id="liveScore">0</span>
+            <span class="score-lbl">PTS</span>
+          </div>
+          <div class="rank-display">
+            RANK <span class="rank-num" id="liveRank">--</span>
+          </div>
+        </div>
+
+        <!-- Progress -->
+        <div class="quiz-progress">
+          <div class="progress-labels">
+            <span id="progressLabel">Question 1 of 15</span>
+            <span id="progressPct">7%</span>
+          </div>
+          <div class="progress-wrap">
+            <div class="progress-bar" id="progressBar" style="width:6.67%"></div>
+          </div>
+        </div>
+
+        <!-- Timer + Score Panel -->
+        <div class="timer-row">
+          <!-- Server Timer Ring -->
+          <div class="timer-ring" id="timerRing">
+            <svg viewBox="0 0 108 108" width="108" height="108">
+              <circle cx="54" cy="54" r="44" stroke-width="6" />
+              <circle
+                class="progress-ring"
+                cx="54" cy="54" r="44"
+                id="timerCircle"
+                stroke-dasharray="276"
+                stroke-dashoffset="0"
+              />
+            </svg>
+            <div class="timer-text" id="timerText">60</div>
+          </div>
+
+          <!-- Score Panel -->
+          <div class="score-panel">
+            <span class="sp-num" id="scoreNum">0</span>
+            <div class="sp-lbl">TOTAL SCORE</div>
+          </div>
+        </div>
+
+        <!-- Question Card -->
+        <div class="question-card card" id="questionCard">
+          <div class="q-meta">
+            <span class="badge badge-cyan"   id="qCategory">General</span>
+            <span class="badge badge-purple" id="qDifficulty">medium</span>
+          </div>
+          <p class="question-text" id="questionText">Loading...</p>
+        </div>
+
+        <!-- Options -->
+        <div class="options-grid" id="optionsGrid">
+          <!-- Populated by JS -->
+        </div>
+
+        <!-- Feedback Bar -->
+        <div class="feedback-bar hidden" id="feedbackBar">
+          <span id="feedbackText">—</span>
+          <span class="feedback-points" id="feedbackPoints">+0 pts</span>
+        </div>
+
+      </div><!-- /#quizUI -->
+
+      <!-- ── Results Screen ─────────────────────────────── -->
+      <div class="results-screen card" id="resultsScreen">
+        <span class="trophy-big" id="trophyIcon">🏆</span>
+
+        <h2 class="results-title">Quiz Complete!</h2>
+        <p class="results-sub">Here's how you did today</p>
+
+        <span class="final-score-num" id="finalScore">0</span>
+
+        <div class="results-stats">
+          <div class="rs-item">
+            <span class="rs-val text-green" id="resCorrect">0</span>
+            <span class="rs-lbl">Correct</span>
+          </div>
+          <div class="rs-item">
+            <span class="rs-val text-red" id="resWrong">0</span>
+            <span class="rs-lbl">Wrong</span>
+          </div>
+          <div class="rs-item">
+            <span class="rs-val text-yellow glow-yellow" id="resRank">--</span>
+            <span class="rs-lbl">Final Rank</span>
+          </div>
+          <div class="rs-item">
+            <span class="rs-val" style="color:#a78bfa" id="resAccuracy">0%</span>
+            <span class="rs-lbl">Accuracy</span>
+          </div>
+          <div class="rs-item">
+            <span class="rs-val text-cyan" id="resTime">0s</span>
+            <span class="rs-lbl">Time Taken</span>
+          </div>
+        </div>
+
+        <div class="results-actions">
+          <a href="/pages/quiz.html"        class="btn btn-primary btn-lg">⚡ PLAY AGAIN</a>
+          <a href="/pages/leaderboard.html" class="btn btn-outline btn-lg">🏆 LEADERBOARD</a>
+          <a href="/pages/dashboard.html"   class="btn btn-ghost btn-lg">📊 DASHBOARD</a>
+        </div>
+      </div><!-- /#resultsScreen -->
+
+    </div>
+  </div>
+
+  <!-- Connection Badge -->
+  <div class="conn-badge" id="connBadge">
+    <div class="live-dot" style="width:6px;height:6px"></div>
+    CONNECTING...
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+  <script src="/js/utils.js"></script>
+  <script>
+    /* ══════════════════════════════════════════════════════
+       quiz.js — Inline Quiz Arena Logic
+       ══════════════════════════════════════════════════════ */
+
+    // ── State ─────────────────────────────────────────────
+    let questions         = [];
+    let currentIndex      = 0;
+    let totalScore        = 0;
+    let correctCount      = 0;
+    let wrongCount        = 0;
+    let socket;
+    let currentTimeLeft   = 60;
+    let answerLocked      = false;
+    let quizStartTime;
+
+    const TOTAL_QS        = 15;
+    const TIMER_MAX       = 60;
+    const CIRCUMFERENCE   = 276;  // 2π × 44 (SVG r=44)
+
+    // ── Init ──────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', async () => {
+      if (!requireAuth()) return;
+      initSocket();
+      await fetchQuestions();
+    });
+
+    // ── Socket.io Setup ───────────────────────────────────
+    function initSocket() {
+      socket = io('/', {
+        auth:          { token: getToken() },
+        reconnection:  true,
+        reconnectionDelay: 1000,
+      });
+
+      const badge = document.getElementById('connBadge');
+
+      socket.on('connect', () => {
+        badge.textContent = '● CONNECTED';
+        badge.className   = 'conn-badge connected';
+      });
+
+      socket.on('disconnect', () => {
+        badge.innerHTML = '<div class="live-dot" style="background:var(--accent-red);width:6px;height:6px;border-radius:50%"></div> DISCONNECTED';
+        badge.className = 'conn-badge disconnected';
+      });
+
+      // ✅ Server-authoritative 60s countdown — 1 event per second
+      socket.on('timer-tick', ({ timeRemaining, questionIndex }) => {
+        if (questionIndex !== currentIndex) return;
+        currentTimeLeft = timeRemaining;
+        renderTimer(timeRemaining);
+      });
+
+      // ✅ Server forces timeout — client cannot fake extra time
+      socket.on('time-expired', ({ questionIndex }) => {
+        if (questionIndex !== currentIndex) return;
+        onTimeout();
+      });
+
+      socket.on('answer-acknowledged', () => {
+        // Server confirmed timer stopped
+      });
+
+      // Live rank update from other players finishing
+      socket.on('new-score-update', ({ leaderboard }) => {
+        updateRankDisplay(leaderboard);
+      });
+    }
+
+    // ── Fetch 15 Random Questions (MongoDB $sample) ───────
+    async function fetchQuestions() {
+      const data = await apiRequest('/api/quiz/start');
+
+      if (!data?.success) {
+        showToast('Failed to load questions. Please try again.', 'error');
+        setTimeout(() => window.location.href = '/pages/dashboard.html', 2500);
+        return;
+      }
+
+      questions     = data.questions;
+      quizStartTime = Date.now();
+
+      document.getElementById('quizLoading').style.display = 'none';
+      document.getElementById('quizUI').style.display      = 'block';
+      document.getElementById('qTotal').textContent        = questions.length;
+
+      renderQuestion(0);
+    }
+
+    // ── Render a Question ─────────────────────────────────
+    function renderQuestion(index) {
+      if (index >= questions.length) { endQuiz(); return; }
+
+      currentIndex = index;
+      answerLocked = false;
+
+      const q = questions[index];
+      const pct = Math.round(((index + 1) / questions.length) * 100);
+
+      document.getElementById('qNum').textContent           = index + 1;
+      document.getElementById('questionText').textContent   = q.questionText;
+      document.getElementById('qCategory').textContent      = q.category;
+      document.getElementById('qDifficulty').textContent    = q.difficulty;
+      document.getElementById('progressBar').style.width    = pct + '%';
+      document.getElementById('progressLabel').textContent  = `Question ${index + 1} of ${questions.length}`;
+      document.getElementById('progressPct').textContent    = pct + '%';
+
+      // Clear feedback bar
+      document.getElementById('feedbackBar').className = 'feedback-bar hidden';
+
+      // Slide-reset the question card
+      const card = document.getElementById('questionCard');
+      card.style.animation = 'none';
+      card.offsetHeight;          // force reflow
+      card.style.animation = '';
+
+      // Build options
+      const labels = ['A', 'B', 'C', 'D'];
+      document.getElementById('optionsGrid').innerHTML = q.options.map((opt, i) => `
+        <button
+          class="option-btn"
+          onclick="onAnswer(this, '${encodeURIComponent(opt)}')"
+          data-val="${encodeURIComponent(opt)}"
+        >
+          <span class="opt-label">${labels[i]}</span>
+          <span>${opt}</span>
+        </button>`
+      ).join('');
+
+      // Reset timer display
+      renderTimer(TIMER_MAX);
+
+      // ✅ Tell server to start the 60-second countdown
+      socket.emit('start-question', { questionIndex: index });
+    }
+
+    // ── Answer Handler ────────────────────────────────────
+    async function onAnswer(btn, encodedAnswer) {
+      if (answerLocked) return;
+      answerLocked = true;
+
+      const selectedAnswer = decodeURIComponent(encodedAnswer);
+
+      // ✅ Stop server timer immediately
+      socket.emit('answer-submitted', {
+        questionIndex: currentIndex,
+        timeRemaining: currentTimeLeft,
+      });
+
+      // Lock all options
+      document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
+      btn.classList.add('selected');
+
+      const q    = questions[currentIndex];
+      const data = await apiRequest('/api/quiz/verify-answer', {
+        method: 'POST',
+        body: JSON.stringify({
+          questionId:     q._id,
+          selectedAnswer,
+          timeRemaining:  currentTimeLeft,
+        }),
+      });
+
+      if (!data) {
+        showToast('Verification error — moving on.', 'error');
+        setTimeout(() => renderQuestion(currentIndex + 1), 2000);
+        return;
+      }
+
+      const { isCorrect, correctAnswer, earnedPoints, explanation } = data;
+
+      // Highlight correct/wrong buttons
+      document.querySelectorAll('.option-btn').forEach(b => {
+        const val = decodeURIComponent(b.dataset.val);
+        if (val === correctAnswer) {
+          b.classList.add('correct');
+        } else if (val === selectedAnswer && !isCorrect) {
+          b.classList.add('wrong');
+        }
+      });
+
+      // Update score
+      if (isCorrect) {
+        totalScore += earnedPoints;
+        correctCount++;
+        bumpScore();
+      } else {
+        wrongCount++;
+      }
+
+      // Show feedback
+      showFeedback(isCorrect, earnedPoints, explanation);
+
+      // Move to next after delay
+      setTimeout(() => renderQuestion(currentIndex + 1), 2300);
+    }
+
+    // ── Timeout Handler ───────────────────────────────────
+    function onTimeout() {
+      if (answerLocked) return;
+      answerLocked = true;
+      wrongCount++;
+
+      document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
+      showFeedback(false, 0, "⌛ Time's up! No answer submitted.");
+
+      setTimeout(() => renderQuestion(currentIndex + 1), 2100);
+    }
+
+    // ── Timer Ring Renderer ───────────────────────────────
+    function renderTimer(secs) {
+      const offset = CIRCUMFERENCE * (1 - (secs / TIMER_MAX));
+      document.getElementById('timerCircle').style.strokeDashoffset = offset;
+      document.getElementById('timerText').textContent = secs;
+
+      const ring = document.getElementById('timerRing');
+      if (secs <= 10) {
+        ring.classList.add('timer-danger');
+      } else {
+        ring.classList.remove('timer-danger');
+      }
+    }
+
+    // ── Score Bump Animation ──────────────────────────────
+    function bumpScore() {
+      const el1 = document.getElementById('liveScore');
+      const el2 = document.getElementById('scoreNum');
+      el1.textContent = totalScore;
+      el2.textContent = totalScore;
+      el2.classList.add('bump');
+      setTimeout(() => el2.classList.remove('bump'), 300);
+    }
+
+    // ── Feedback Bar ──────────────────────────────────────
+    function showFeedback(ok, pts, note) {
+      const bar = document.getElementById('feedbackBar');
+      bar.className = `feedback-bar ${ok ? 'correct-fb' : 'wrong-fb'}`;
+
+      const icon = ok ? '✅' : '❌';
+      const msg  = note
+        ? `${icon} ${note}`
+        : ok ? '✅ Correct!' : '❌ Wrong answer!';
+
+      document.getElementById('feedbackText').textContent  = msg;
+      document.getElementById('feedbackPoints').textContent = ok ? `+${pts} pts` : '+0 pts';
+      document.getElementById('feedbackPoints').style.color = ok
+        ? 'var(--accent-green)'
+        : 'var(--text-muted)';
+    }
+
+    // ── End Quiz ──────────────────────────────────────────
+    async function endQuiz() {
+      const timeTaken = Math.floor((Date.now() - quizStartTime) / 1000);
+      const accuracy  = Math.round((correctCount / TOTAL_QS) * 100);
+
+      // Hide quiz, show results
+      document.getElementById('quizUI').style.display = 'none';
+      document.getElementById('resultsScreen').classList.add('show');
+
+      // Populate results
+      document.getElementById('finalScore').textContent  = totalScore;
+      document.getElementById('resCorrect').textContent  = correctCount;
+      document.getElementById('resWrong').textContent    = wrongCount;
+      document.getElementById('resAccuracy').textContent = accuracy + '%';
+      document.getElementById('resTime').textContent     = formatTime(timeTaken);
+
+      // Trophy based on performance
+      const trophy = totalScore >= 160 ? '🏆'
+                   : totalScore >= 120 ? '🥇'
+                   : totalScore >= 80  ? '🥈'
+                   : totalScore >= 40  ? '🥉'
+                   : '🎮';
+      document.getElementById('trophyIcon').textContent = trophy;
+
+      // ── Submit score via REST ──────────────────────────
+      const submitData = await apiRequest('/api/quiz/submit', {
+        method: 'POST',
+        body: JSON.stringify({
+          points:         totalScore,
+          correctAnswers: correctCount,
+          timeTaken,
+        }),
+      });
+
+      if (submitData?.success) {
+        showToast('Score saved successfully! 🎉', 'success');
+      }
+
+      // ── Broadcast via Socket (triggers live leaderboard update for all users) ──
+      socket.emit('quiz-completed', {
+        finalScore:     totalScore,
+        correctAnswers: correctCount,
+      });
+
+      // ── Fetch my final rank ─────────────────────────────
+      const rankData = await apiRequest('/api/leaderboard/my-rank');
+      if (rankData?.success && rankData.rank) {
+        document.getElementById('resRank').textContent = `#${rankData.rank}`;
+      } else {
+        document.getElementById('resRank').textContent = '--';
+      }
+    }
+
+    // ── Live Rank Update ──────────────────────────────────
+    function updateRankDisplay(leaderboard) {
+      const me = getUser();
+      if (!me) return;
+      const entry = leaderboard.find(e => e.username === me.username);
+      if (entry) {
+        const rank = leaderboard.indexOf(entry) + 1;
+        document.getElementById('liveRank').textContent = `#${rank}`;
+        document.getElementById('navRank').textContent  = `#${rank}`;
+      }
+    }
+
+    // ── Helpers ───────────────────────────────────────────
+    function formatTime(secs) {
+      const m = Math.floor(secs / 60);
+      const s = secs % 60;
+      return m > 0 ? `${m}m ${s}s` : `${s}s`;
+    }
+  </script>
+</body>
+</html>

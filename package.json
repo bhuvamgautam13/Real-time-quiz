@@ -1,0 +1,40 @@
+{
+  "name": "real-time-quiz",
+  "version": "1.0.0",
+  "description": "Real-Time Multiplayer Quiz Engine",
+  "main": "backend/server.js",
+  "scripts": {
+   "start": "node backend/server.js",
+    "dev":   "nodemon backend/server.js",
+    "seed":  "node backend/seed/seedQuestions.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bhuvamgautam13/Real-time-quiz.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/bhuvamgautam13/Real-time-quiz/issues"
+  },
+  "homepage": "https://github.com/bhuvamgautam13/Real-time-quiz#readme",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.1",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.3.2",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.4.1",
+    "multer": "^2.1.1",
+    "passport": "^0.7.0",
+    "passport-google-oauth20": "^2.0.0",
+    "socket.io": "^4.8.3"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}

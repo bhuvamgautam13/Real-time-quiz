@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — QuizArena</title>
+  <link rel="stylesheet" href="/css/global.css" />
+  <style>
+    /* ── Profile Header ─────────────────────────────────────── */
+    .profile-header {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      padding: 32px;
+      background: var(--bg-glass);
+      border: 1px solid var(--border-card);
+      border-radius: var(--r-xl);
+      backdrop-filter: blur(20px);
+      margin-bottom: 32px;
+      position: relative;
+      overflow: hidden;
+      animation: fadeUp 0.5s var(--ease) both;
+    }
+
+    .profile-header::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple), var(--accent-pink));
+    }
+
+    /* Decorative background glow */
+    .profile-header::after {
+      content: '';
+      position: absolute;
+      top: -40px; right: -40px;
+      width: 200px; height: 200px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(0,245,255,0.08), transparent 70%);
+      pointer-events: none;
+    }
+
+    .profile-avatar-wrap { position: relative; flex-shrink: 0; }
+
+    .profile-avatar {
+      width: 96px; height: 96px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid var(--accent-cyan);
+      box-shadow: var(--glow-cyan);
+      display: block;
+    }
+
+    .online-dot {
+      position: absolute;
+      bottom: 4px; right: 4px;
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: var(--accent-green);
+      border: 2px solid var(--bg-primary);
+      box-shadow: var(--glow-green);
+    }
+
+    .profile-info { flex: 1; min-width: 0; }
+
+    .profile-info h2 {
+      font-size: 1.65rem;
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .profile-email {
+      color: var(--text-muted);
+      font-size: 0.87rem;
+      margin-bottom: 14px;
+      font-family: var(--font-body);
+    }
+
+    .profile-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+
+    .profile-actions { flex-shrink: 0; display: flex; gap: 10px; }
+
+    @media (max-width: 640px) {
+      .profile-header { flex-direction: column; text-align: center; }
+      .profile-tags { justify-content: center; }
+      .profile-actions { justify-content: center; }
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Stats Grid ─────────────────────────────────────────── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 32px;
+      animation: fadeUp 0.5s 0.1s var(--ease) both;
+    }
+
+    @media (max-width: 900px)  { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 480px)  { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+
+    /* ── Start Quiz CTA ─────────────────────────────────────── */
+    .quiz-cta {
+      background: linear-gradient(135deg,
+        rgba(0,245,255,0.07) 0%,
+        rgba(124,58,237,0.07) 50%,
+        rgba(236,72,153,0.05) 100%);
+      border: 1px solid rgba(0,245,255,0.18);
+      border-radius: var(--r-xl);
+      padding: 44px 40px;
+      text-align: center;
+      margin-bottom: 32px;
+      position: relative;
+      overflow: hidden;
+      animation: fadeUp 0.5s 0.2s var(--ease) both;
+    }
+
+    .quiz-cta::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple));
+    }
+
+    /* Decorative orbs */
+    .quiz-cta .orb-left {
+      position: absolute;
+      left: -60px; top: 50%; transform: translateY(-50%);
+      width: 200px; height: 200px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(0,245,255,0.1), transparent 70%);
+      filter: blur(30px);
+      pointer-events: none;
+    }
+    .quiz-cta .orb-right {
+      position: absolute;
+      right: -60px; top: 50%; transform: translateY(-50%);
+      width: 200px; height: 200px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(124,58,237,0.12), transparent 70%);
+      filter: blur(30px);
+      pointer-events: none;
+    }
+
+    .quiz-cta h2 {
+      font-size: clamp(1.4rem, 3vw, 2rem);
+      margin-bottom: 10px;
+      position: relative;
+    }
+
+    .quiz-cta p {
+      color: var(--text-secondary);
+      font-size: 1rem;
+      margin-bottom: 28px;
+      max-width: 520px;
+      margin-left: auto; margin-right: auto;
+      position: relative;
+    }
+
+    .cta-features {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      flex-wrap: wrap;
+      margin-bottom: 28px;
+      position: relative;
+    }
+
+    .cta-feature {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      font-family: var(--font-display);
+      font-size: 0.72rem;
+      letter-spacing: 0.06em;
+    }
+
+    .cta-feature .icon { font-size: 1rem; }
+
+    .start-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 16px 52px;
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+      color: #fff;
+      border: none;
+      border-radius: var(--r-xl);
+      font-family: var(--font-display);
+      font-size: 1rem;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      cursor: pointer;
+      transition: all 0.3s var(--ease-bounce);
+      box-shadow: 0 8px 32px rgba(0,245,255,0.3);
+      text-decoration: none;
+      position: relative;
+    }
+
+    .start-btn:hover {
+      transform: translateY(-4px) scale(1.03);
+      box-shadow: 0 16px 48px rgba(0,245,255,0.5);
+    }
+
+    .start-btn .btn-arrow {
+      font-size: 1.2rem;
+      transition: transform 0.2s var(--ease);
+    }
+    .start-btn:hover .btn-arrow { transform: translateX(4px); }
+
+    /* ── Two Column Layout ──────────────────────────────────── */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      animation: fadeUp 0.5s 0.3s var(--ease) both;
+    }
+
+    @media (max-width: 768px) { .two-col { grid-template-columns: 1fr; } }
+
+    /* ── Scores List ────────────────────────────────────────── */
+    .scores-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    /* ── Live Feed Panel ────────────────────────────────────── */
+    .feed-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: var(--r-lg);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .feed-panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border-card);
+      background: rgba(0,0,0,0.2);
+    }
+
+    .feed-panel-header h3 {
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .feed-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px 16px;
+      max-height: 340px;
+    }
+
+    .feed-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 120px;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      gap: 8px;
+    }
+
+    /* ── Quick Nav Cards ────────────────────────────────────── */
+    .quick-nav {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 32px;
+      animation: fadeUp 0.5s 0.15s var(--ease) both;
+    }
+
+    @media (max-width: 640px) { .quick-nav { grid-template-columns: 1fr 1fr; } }
+
+    .quick-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: var(--r-md);
+      padding: 18px;
+      text-align: center;
+      text-decoration: none;
+      color: var(--text-primary);
+      transition: all var(--duration-base) var(--ease);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .quick-card:hover {
+      border-color: var(--border-glow);
+      background: var(--bg-card-hover);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    }
+
+    .quick-card .qc-icon { font-size: 1.8rem; }
+    .quick-card .qc-label {
+      font-family: var(--font-display);
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+      color: var(--text-secondary);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── Navbar ────────────────────────────────────────────── -->
+  <nav class="navbar">
+    <a href="/" class="navbar-brand">⚡ QUIZ ARENA</a>
+    <ul class="navbar-nav">
+      <li><a href="/pages/quiz.html">Play Now</a></li>
+      <li><a href="/pages/leaderboard.html">Leaderboard</a></li>
+      <li>
+        <button
+          onclick="logout()"
+          class="btn btn-ghost btn-sm"
+          style="padding:7px 14px">
+          LOGOUT
+        </button>
+      </li>
+    </ul>
+  </nav>
+
+  <!-- ── Page Content ──────────────────────────────────────── -->
+  <div class="page-wrapper">
+
+    <!-- Profile Header -->
+    <div class="profile-header">
+      <div class="profile-avatar-wrap">
+        <img
+          id="profileAvatar"
+          src=""
+          alt="Avatar"
+          class="profile-avatar"
+          onerror="this.src=getDefaultAvatar()"
+        />
+        <div class="online-dot"></div>
+      </div>
+
+      <div class="profile-info">
+        <h2 id="profileUsername">Loading...</h2>
+        <p class="profile-email" id="profileEmail">—</p>
+        <div class="profile-tags">
+          <span class="badge badge-cyan"  id="rankBadge">Rank #--</span>
+          <span class="badge badge-purple" id="gamesBadge">0 Games</span>
+          <span class="badge badge-green"  id="verifiedBadge" style="display:none">✓ Verified</span>
+        </div>
+      </div>
+
+      <div class="profile-actions">
+        <a href="/pages/leaderboard.html" class="btn btn-outline btn-sm">🏆 LEADERBOARD</a>
+      </div>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <span class="stat-value text-cyan" id="statTotalScore">—</span>
+        <span class="stat-label">Total Points</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-value" style="color:var(--accent-yellow)" id="statHighScore">—</span>
+        <span class="stat-label">High Score</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-value" style="color:var(--accent-purple); color:#a78bfa" id="statGames">—</span>
+        <span class="stat-label">Games Played</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-value text-green" id="statAccuracy">—</span>
+        <span class="stat-label">Avg Accuracy</span>
+      </div>
+    </div>
+
+    <!-- Quick Nav -->
+    <div class="quick-nav">
+      <a href="/pages/quiz.html" class="quick-card">
+        <span class="qc-icon">⚡</span>
+        <span class="qc-label">PLAY QUIZ</span>
+      </a>
+      <a href="/pages/leaderboard.html" class="quick-card">
+        <span class="qc-icon">🏆</span>
+        <span class="qc-label">LEADERBOARD</span>
+      </a>
+      <a href="#scoresSection" class="quick-card">
+        <span class="qc-icon">📊</span>
+        <span class="qc-label">MY SCORES</span>
+      </a>
+    </div>
+
+    <!-- Start Quiz CTA -->
+    <div class="quiz-cta">
+      <div class="orb-left"></div>
+      <div class="orb-right"></div>
+
+      <h2>Ready for Today's Challenge? ⚡</h2>
+      <p>15 random questions from 100+ pool. Server-synced 60-second timers. Live leaderboard updates the moment you finish.</p>
+
+      <div class="cta-features">
+        <div class="cta-feature"><span class="icon">🎲</span> MongoDB $sample shuffle</div>
+        <div class="cta-feature"><span class="icon">⏱</span> Server-side timer</div>
+        <div class="cta-feature"><span class="icon">📡</span> Real-time ranking</div>
+        <div class="cta-feature"><span class="icon">🏅</span> Time bonus points</div>
+      </div>
+
+      <a href="/pages/quiz.html" class="start-btn">
+        START DAILY QUIZ
+        <span class="btn-arrow">→</span>
+      </a>
+    </div>
+
+    <!-- Two Column: Scores + Live Feed -->
+    <div class="two-col" id="scoresSection">
+
+      <!-- Recent Scores -->
+      <div>
+        <div class="section-header">
+          <h3>📊 My Recent Games</h3>
+          <span id="scorePagination" class="text-muted" style="font-size:0.8rem"></span>
+        </div>
+
+        <div class="scores-list" id="scoresList">
+          <div class="loading-state">
+            <div class="spinner"></div>
+            <span>Loading scores...</span>
+          </div>
+        </div>
+
+        <!-- Load More -->
+        <div style="text-align:center; margin-top:16px;">
+          <button
+            id="loadMoreBtn"
+            class="btn btn-ghost btn-sm"
+            onclick="loadMoreScores()"
+            style="display:none">
+            Load More →
+          </button>
+        </div>
+      </div>
+
+      <!-- Live Activity Feed -->
+      <div>
+        <div class="section-header">
+          <h3>🔴 Live Activity</h3>
+          <div class="live-indicator">
+            <div class="live-dot"></div>
+            CONNECTED
+          </div>
+        </div>
+
+        <div class="feed-panel">
+          <div class="feed-panel-header">
+            <h3>
+              <span>📡</span>
+              Real-Time Score Feed
+            </h3>
+            <span class="badge badge-green" id="onlineCount">— online</span>
+          </div>
+          <div class="feed-body" id="liveFeed">
+            <div class="feed-empty">
+              <span style="font-size:1.8rem">📡</span>
+              <span>Connecting to live feed...</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Today's Top Score preview -->
+        <div class="card" style="margin-top:16px; padding:20px;">
+          <div class="section-header" style="margin-bottom:14px">
+            <h3 style="font-size:0.85rem">🏅 Today's Leader</h3>
+            <a href="/pages/leaderboard.html"
+               style="font-size:0.78rem; color:var(--accent-cyan)">View All →</a>
+          </div>
+          <div id="todayLeader">
+            <div class="loading-state" style="padding:20px">
+              <div class="spinner spinner-sm"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /.two-col -->
+  </div><!-- /.page-wrapper -->
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+  <script src="/js/utils.js"></script>
+  <script>
+    /* ── dashboard.js — inline for self-contained file ── */
+
+    let scorePage = 1;
+    const scoreLimit = 6;
+    let totalScorePages = 1;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      if (!requireAuth()) return;
+      await Promise.all([loadProfile(), loadScores(1)]);
+      connectSocket();
+    });
+
+    /* ─ Load Profile ────────────────────────────────────── */
+    async function loadProfile() {
+      const data = await apiRequest('/api/auth/me');
+      if (!data?.success) return;
+      const u = data.user;
+      setUser(u);
+
+      document.getElementById('profileUsername').textContent = u.username;
+      document.getElementById('profileEmail').textContent    = u.email;
+
+      const av = document.getElementById('profileAvatar');
+      av.src = getAvatarUrl(u.profilePicture);
+
+      document.getElementById('statTotalScore').textContent = u.totalScore.toLocaleString();
+      document.getElementById('statHighScore').textContent  = u.highScore.toLocaleString();
+      document.getElementById('statGames').textContent      = u.gamesPlayed;
+
+      const acc = u.gamesPlayed > 0
+        ? Math.min(100, Math.round((u.totalCorrectAnswers / (u.gamesPlayed * 15)) * 100))
+        : 0;
+      document.getElementById('statAccuracy').textContent = acc + '%';
+      document.getElementById('gamesBadge').textContent   = `${u.gamesPlayed} Games`;
+
+      if (u.isVerified) document.getElementById('verifiedBadge').style.display = 'inline-flex';
+
+      // Fetch today's rank
+      const rd = await apiRequest('/api/leaderboard/my-rank');
+      if (rd?.success && rd.rank) {
+        document.getElementById('rankBadge').textContent = `Rank #${rd.rank}`;
+      } else {
+        document.getElementById('rankBadge').textContent = 'Unranked';
+      }
+    }
+
+    /* ─ Load Scores ─────────────────────────────────────── */
+    async function loadScores(page) {
+      const container = document.getElementById('scoresList');
+      if (page === 1) {
+        container.innerHTML = `<div class="loading-state"><div class="spinner"></div><span>Loading...</span></div>`;
+      }
+
+      const data = await apiRequest(`/api/quiz/my-scores?page=${page}&limit=${scoreLimit}`);
+
+      if (!data?.success || !data.scores.length) {
+        if (page === 1) {
+          container.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-icon">🎮</div>
+              <h3>No Games Yet</h3>
+              <p>Start your first quiz to see your score history here!</p>
+              <a href="/pages/quiz.html" class="btn btn-primary btn-sm" style="margin-top:16px">
+                PLAY NOW →
+              </a>
+            </div>`;
+        }
+        document.getElementById('loadMoreBtn').style.display = 'none';
+        return;
+      }
+
+      totalScorePages = data.pagination.totalPages;
+      scorePage       = data.pagination.page;
+
+      document.getElementById('scorePagination').textContent =
+        `${data.pagination.total} total`;
+
+      const rows = data.scores.map(s => buildScoreRow(s)).join('');
+
+      if (page === 1) {
+        container.innerHTML = rows;
+      } else {
+        container.insertAdjacentHTML('beforeend', rows);
+      }
+
+      const loadBtn = document.getElementById('loadMoreBtn');
+      loadBtn.style.display = scorePage < totalScorePages ? 'inline-flex' : 'none';
+    }
+
+    function loadMoreScores() {
+      loadScores(scorePage + 1);
+    }
+
+    function buildScoreRow(s) {
+      const acc    = Math.round((s.correctAnswers / s.totalQuestions) * 100);
+      const icon   = s.points >= 150 ? '🏆' : s.points >= 100 ? '🥇' : s.points >= 70 ? '🥈' : '🎮';
+      const color  = s.points >= 100
+        ? 'color:var(--accent-yellow)'
+        : s.points >= 70
+          ? 'color:var(--text-secondary)'
+          : 'color:var(--accent-cyan)';
+
+      return `
+        <div class="score-row">
+          <div class="game-info">
+            <span class="game-icon">${icon}</span>
+            <div class="game-meta">
+              <h4>${s.correctAnswers}/${s.totalQuestions} correct &nbsp;·&nbsp; ${acc}% accuracy</h4>
+              <span>${timeAgo(s.createdAt)}</span>
+            </div>
+          </div>
+          <div class="score-points" style="${color}">${s.points}</div>
+        </div>`;
+    }
+
+    /* ─ Socket: Live Feed ───────────────────────────────── */
+    function connectSocket() {
+      const token = getToken();
+      if (!token) return;
+
+      const socket = io('/', { auth: { token }, reconnection: true });
+
+      socket.on('connect', () => {
+        updateFeedEmpty('✅ Connected — waiting for activity...');
+        socket.emit('request-leaderboard');
+      });
+
+      socket.on('disconnect', () => {
+        updateFeedEmpty('⚠️  Disconnected. Reconnecting...');
+      });
+
+      socket.on('leaderboard-data', ({ leaderboard }) => {
+        renderTodayLeader(leaderboard);
+      });
+
+      socket.on('new-score-update', ({ triggerUser, finalScore, leaderboard }) => {
+        pushFeedEntry(
+          `🏆 <span class="feed-user">${triggerUser}</span> scored <span class="feed-score">${finalScore}</span> pts`
+        );
+        renderTodayLeader(leaderboard);
+
+        // Update rank badge if I am in the leaderboard
+        const me = getUser();
+        if (me) {
+          const entry = leaderboard.find(e => e.username === me.username);
+          if (entry) {
+            const rank = leaderboard.indexOf(entry) + 1;
+            document.getElementById('rankBadge').textContent = `Rank #${rank}`;
+          }
+        }
+      });
+    }
+
+    function updateFeedEmpty(msg) {
+      const feed = document.getElementById('liveFeed');
+      if (!feed.querySelector('.feed-item')) {
+        feed.innerHTML = `<div class="feed-empty"><span>${msg}</span></div>`;
+      }
+    }
+
+    function pushFeedEntry(html) {
+      const feed = document.getElementById('liveFeed');
+      // Remove empty state div if present
+      const empty = feed.querySelector('.feed-empty');
+      if (empty) empty.remove();
+
+      const item = document.createElement('div');
+      item.className = 'feed-item';
+      item.innerHTML = `<span class="feed-time">${new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</span>${html}`;
+      feed.insertBefore(item, feed.firstChild);
+
+      // Keep only 25 entries
+      while (feed.children.length > 25) feed.removeChild(feed.lastChild);
+    }
+
+    function renderTodayLeader(leaderboard) {
+      const el = document.getElementById('todayLeader');
+      if (!leaderboard || leaderboard.length === 0) {
+        el.innerHTML = `<p class="text-muted" style="font-size:.85rem;text-align:center;padding:12px">No scores today yet. Be first!</p>`;
+        return;
+      }
+      const top = leaderboard[0];
+      el.innerHTML = `
+        <div style="display:flex;align-items:center;gap:14px">
+          <img src="${getAvatarUrl(top.profilePicture)}"
+               onerror="this.src='${getDefaultAvatar()}'"
+               class="avatar avatar-sm avatar-glow"
+               alt="${top.username}"/>
+          <div style="flex:1">
+            <div style="font-weight:600;font-size:.95rem">${top.username} <span style="color:var(--accent-yellow)">🥇</span></div>
+            <div class="text-muted" style="font-size:.78rem">${top.correctAnswers ?? '?'}/15 correct</div>
+          </div>
+          <div class="font-display text-cyan" style="font-size:1.5rem;font-weight:800">${top.bestScore}</div>
+        </div>`;
+    }
+  </script>
+</body>
+</html>
