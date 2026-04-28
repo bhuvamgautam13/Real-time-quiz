@@ -14,7 +14,7 @@ const {
 const { protect } = require('../middleware/auth');
 const { authLimiter, uploadLimiter } = require('../middleware/rateLimit');
 const upload = require('../config/multer');
-const { protect } = require('../middleware/auth');
+
 const { getMe } = require('../controllers/authController');
 
 router.get('/me', protect, getMe);
