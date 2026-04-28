@@ -1,4 +1,4 @@
-import { apiRequest, isLoggedIn, setUser, showToast } from "./utils.js";
+
 console.log("AUTH JS LOADED");
 document.addEventListener('DOMContentLoaded', async () => {
 
