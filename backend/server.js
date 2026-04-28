@@ -21,6 +21,7 @@ const { initializeSocket } = require('./socket/quizSocket');
 const app = express();
 const httpServer = http.createServer(app);
 
+// ================= SOCKET =================
 const io = new Server(httpServer, {
   cors: {
     origin: process.env.CLIENT_URL || 'https://real-time-quiz-engine.onrender.com',
@@ -34,6 +35,7 @@ const io = new Server(httpServer, {
 initializeSocket(io);
 app.set('io', io);
 
+// ================= MIDDLEWARE =================
 app.use(cors({
   origin: process.env.CLIENT_URL || 'https://real-time-quiz-engine.onrender.com',
   credentials: true,
@@ -45,44 +47,34 @@ app.use(cookieParser());
 app.use(passport.initialize());
 app.use('/api', generalLimiter);
 
+// ================= STATIC FILES =================
 
+// VERY IMPORTANT: serve frontend correctly
+const FRONTEND_PATH = path.join(__dirname, '../frontend');
 
-// ✅ SERVE STATIC FILES (IMPORTANT FIX)
-app.use(express.static(path.join(__dirname, '../frontend')));
+app.use(express.static(FRONTEND_PATH));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-
-
-// ✅ API ROUTES
+// ================= API ROUTES =================
 app.use('/api/auth', authRoutes);
 app.use('/api/quiz', quizRoutes);
 app.use('/api/leaderboard', leaderboardRoutes);
 app.use('/api/upload', uploadRoutes);
 
-
-
-// ✅ FIX ROOT ROUTE
+// ================= ROOT =================
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/pages/index.html'));
+  res.sendFile(path.join(FRONTEND_PATH, 'pages/index.html'));
 });
 
-
-
-// ❌ REMOVE THIS (it breaks paths)
-// app.get('/frontend/pages/:page', ...)
-
-
-
-// ✅ HANDLE ALL FRONTEND ROUTES (VERY IMPORTANT)
-app.get('/', (req, res) => {
+// ================= CATCH-ALL (CRITICAL FIX) =================
+// This fixes "Cannot GET /pages/login.html" on refresh / direct open
+app.get('*', (req, res) => {
   if (req.originalUrl.startsWith('/api')) return;
 
-  res.sendFile(path.join(__dirname, '../pages/index.html'));
+  res.sendFile(path.join(FRONTEND_PATH, 'pages/index.html'));
 });
 
-
-
-// API 404
+// ================= API 404 =================
 app.use('/api', (req, res) => {
   res.status(404).json({
     success: false,
@@ -90,14 +82,15 @@ app.use('/api', (req, res) => {
   });
 });
 
-
-
-// GLOBAL ERROR HANDLER
+// ================= ERROR HANDLER =================
 app.use((err, req, res, next) => {
   console.error('💥 Global Error:', err.message);
 
   if (err.code === 'LIMIT_FILE_SIZE') {
-    return res.status(400).json({ success: false, message: 'File too large. Maximum size is 5MB.' });
+    return res.status(400).json({
+      success: false,
+      message: 'File too large. Maximum size is 5MB.'
+    });
   }
 
   if (err.code === 'LIMIT_UNEXPECTED_FILE') {
@@ -109,15 +102,18 @@ app.use((err, req, res, next) => {
   }
 
   if (err.name === 'ValidationError') {
-    const messages = Object.values(err.errors).map((e) => e.message);
-    return res.status(400).json({ success: false, message: messages.join(', ') });
+    const messages = Object.values(err.errors).map(e => e.message);
+    return res.status(400).json({
+      success: false,
+      message: messages.join(', ')
+    });
   }
 
   if (err.code === 11000) {
     const field = Object.keys(err.keyValue)[0];
     return res.status(409).json({
       success: false,
-      message: `${field} already exists.`,
+      message: `${field} already exists.`
     });
   }
 
@@ -127,8 +123,7 @@ app.use((err, req, res, next) => {
   });
 });
 
-
-
+// ================= START SERVER =================
 const PORT = process.env.PORT || 5000;
 
 const start = async () => {
@@ -136,10 +131,9 @@ const start = async () => {
 
   httpServer.listen(PORT, () => {
     console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log(`🚀  Server running at https://real-time-quiz-engine.onrender.com`);
-    console.log(`📄  Frontend: https://real-time-quiz-engine.onrender.com`);
-    console.log(`🔌  Socket.io: Active`);
-    console.log(`📡  API Base: https://real-time-quiz-engine.onrender.com/api`);
+    console.log(`🚀 Server running at https://real-time-quiz-engine.onrender.com`);
+    console.log(`📄 Frontend: https://real-time-quiz-engine.onrender.com`);
+    console.log(`📡 API: https://real-time-quiz-engine.onrender.com/api`);
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
   });
 };
