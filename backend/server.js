@@ -47,12 +47,14 @@ app.use(cookieParser());
 app.use(passport.initialize());
 app.use('/api', generalLimiter);
 
-// ================= STATIC FILES =================
-
-// VERY IMPORTANT: serve frontend correctly
+// ================= PATHS =================
 const FRONTEND_PATH = path.join(__dirname, '../frontend');
 
+// ================= STATIC FILES =================
+// Serve frontend (VERY IMPORTANT)
 app.use(express.static(FRONTEND_PATH));
+
+// Serve uploads
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // ================= API ROUTES =================
@@ -66,10 +68,10 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(FRONTEND_PATH, 'pages/index.html'));
 });
 
-// ================= CATCH-ALL (CRITICAL FIX) =================
-// This fixes "Cannot GET /pages/login.html" on refresh / direct open
-app.get('*', (req, res) => {
-  if (req.originalUrl.startsWith('/api')) return;
+// ================= SAFE CATCH-ALL =================
+// Fix for direct URL access like /pages/login.html
+app.use((req, res, next) => {
+  if (req.originalUrl.startsWith('/api')) return next();
 
   res.sendFile(path.join(FRONTEND_PATH, 'pages/index.html'));
 });
@@ -89,23 +91,29 @@ app.use((err, req, res, next) => {
   if (err.code === 'LIMIT_FILE_SIZE') {
     return res.status(400).json({
       success: false,
-      message: 'File too large. Maximum size is 5MB.'
+      message: 'File too large. Maximum size is 5MB.',
     });
   }
 
   if (err.code === 'LIMIT_UNEXPECTED_FILE') {
-    return res.status(400).json({ success: false, message: err.message });
+    return res.status(400).json({
+      success: false,
+      message: err.message,
+    });
   }
 
   if (err.name === 'JsonWebTokenError') {
-    return res.status(401).json({ success: false, message: 'Invalid token.' });
+    return res.status(401).json({
+      success: false,
+      message: 'Invalid token.',
+    });
   }
 
   if (err.name === 'ValidationError') {
     const messages = Object.values(err.errors).map(e => e.message);
     return res.status(400).json({
       success: false,
-      message: messages.join(', ')
+      message: messages.join(', '),
     });
   }
 
@@ -113,7 +121,7 @@ app.use((err, req, res, next) => {
     const field = Object.keys(err.keyValue)[0];
     return res.status(409).json({
       success: false,
-      message: `${field} already exists.`
+      message: `${field} already exists.`,
     });
   }
 
