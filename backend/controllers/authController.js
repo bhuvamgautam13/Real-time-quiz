@@ -101,17 +101,24 @@ const login = async (req, res) => {
   }
 };
 
+const getMe = async (req, res) => {
+  res.status(200).json({
+    success: true,
+    user: req.user,
+  });
+};
 const googleCallback = (req, res) => {
   try {
     const token = sendTokenCookie(res, req.user._id);
 
-    res.redirect(`/pages/dashboard.html?token=${token}`);
+    // 🔥 Redirect to LOGIN PAGE (not dashboard)
+    res.redirect(`/pages/login.html?token=${token}`);
+
   } catch (error) {
     console.error('Google callback error:', error);
     res.redirect('/pages/login.html?error=oauth_failed');
   }
 };
-
 const logout = (req, res) => {
   res.clearCookie('token', {
     httpOnly: true,
