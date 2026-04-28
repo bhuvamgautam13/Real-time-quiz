@@ -1,32 +1,39 @@
 import { apiRequest, isLoggedIn, setUser, showToast } from "./utils.js";
-
+console.log("AUTH JS LOADED");
 document.addEventListener('DOMContentLoaded', async () => {
 
-  const params = new URLSearchParams(window.location.search);
-  const googleToken = params.get('token');
+ const params = new URLSearchParams(window.location.search);
+const googleToken = params.get('token');
 
-  // GOOGLE LOGIN
-  if (googleToken) {
-    localStorage.setItem('token', googleToken);
+console.log("TOKEN:", googleToken);
 
-    try {
-      const res = await fetch('/api/auth/me', {
-        headers: { Authorization: `Bearer ${googleToken}` }
-      });
+if (googleToken) {
+  console.log("Processing Google login...");
 
-      const data = await res.json();
+  localStorage.setItem('token', googleToken);
+
+  fetch('/api/auth/me', {
+    headers: {
+      Authorization: `Bearer ${googleToken}`
+    }
+  })
+    .then(res => res.json())
+    .then(data => {
+      console.log("USER:", data);
 
       if (data.user) {
         localStorage.setItem('user', JSON.stringify(data.user));
-        setUser(data.user);
-      }
-    } catch (err) {
-      console.error(err);
-    }
 
-    window.location.href = '/pages/dashboard.html';
-    return;
-  }
+        window.location.href = '/pages/dashboard.html';
+      } else {
+        throw new Error("No user returned");
+      }
+    })
+    .catch(err => {
+      console.error(err);
+      localStorage.clear();
+    });
+}
 
   // ALREADY LOGGED IN
   if (isLoggedIn()) {
