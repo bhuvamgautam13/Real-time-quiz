@@ -48,6 +48,20 @@ const startQuiz = async (req, res) => {
 
 // ================= VERIFY ANSWER =================
 const verifyAnswer = async (req, res) => {
+  let body = req.body;
+
+// 🔥 FIX: handle stringified body
+if (typeof body === 'string') {
+  try {
+    body = JSON.parse(body);
+  } catch (err) {
+    console.error("Body parse failed:", body);
+    return res.status(400).json({
+      success: false,
+      message: "Invalid request format"
+    });
+  }
+}
   try {
     console.log("REQ BODY:", req.body); // 🔥 DEBUG
 

@@ -131,11 +131,11 @@ async function onAnswer(encodedAnswer, btn) {
     const data = await apiRequest(
       '/api/quiz/verify-answer',
       'POST',
-      {
+      console.log("SENDING BODY:", {
         questionId: q._id,
-        selectedAnswer: selectedAnswer ,
+        selectedAnswer,
         timeRemaining: currentTimeRemaining
-      }
+  })
     );
 
     console.log("API RESPONSE:", data);
