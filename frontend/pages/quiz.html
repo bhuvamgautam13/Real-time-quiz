@@ -667,66 +667,77 @@
     }
 
     // ── Answer Handler ────────────────────────────────────
-    async function onAnswer(btn, encodedAnswer) {
-      if (answerLocked) return;
-      answerLocked = true;
+   async function onAnswer(btn, encodedAnswer) {
+  if (answerLocked) return;
+  answerLocked = true;
 
-      const selectedAnswer = decodeURIComponent(encodedAnswer);
+  const selectedAnswer = decodeURIComponent(encodedAnswer);
 
-      // ✅ Stop server timer immediately
-      socket.emit('answer-submitted', {
-        questionIndex: currentIndex,
-        timeRemaining: currentTimeLeft,
-      });
+  // Stop server timer
+  socket.emit('answer-submitted', {
+    questionIndex: currentIndex,
+    timeRemaining: currentTimeLeft
+  });
 
-      // Lock all options
-      document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
-      btn.classList.add('selected');
+  // Disable all buttons
+  document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
+  btn.classList.add('selected');
 
-      const q = questions[currentIndex];
-      const data = await apiRequest('/api/quiz/verify-answer', {
-        method: 'POST',
-        body: {
-          questionId: q._id,
-          selectedAnswer: selectedAnswer,
-          timeRemaining: currentTimeRemaining
-        },
-      });
+  const q = questions[currentIndex];
 
-      if (!data) {
-        showToast('Verification error — moving on.', 'error');
-        setTimeout(() => renderQuestion(currentIndex + 1), 2000);
-        return;
+  try {
+    const data = await apiRequest(
+      '/api/quiz/verify-answer',
+      'POST',
+      {
+        questionId: q._id,
+        selectedAnswer: selectedAnswer,
+        timeRemaining: currentTimeLeft // ✅ FIXED
       }
+    );
 
-      const { isCorrect, correctAnswer, earnedPoints, explanation } = data;
+    console.log("VERIFY RESPONSE:", data);
 
-      // Highlight correct/wrong buttons
-      document.querySelectorAll('.option-btn').forEach(b => {
-        const val = decodeURIComponent(b.dataset.val);
-        if (val === correctAnswer) {
-          b.classList.add('correct');
-        } else if (val === selectedAnswer && !isCorrect) {
-          b.classList.add('wrong');
-        }
-      });
-
-      // Update score
-      if (isCorrect) {
-        totalScore += earnedPoints;
-        correctCount++;
-        bumpScore();
-      } else {
-        wrongCount++;
-      }
-
-      // Show feedback
-      showFeedback(isCorrect, earnedPoints, explanation);
-
-      // Move to next after delay
-      setTimeout(() => renderQuestion(currentIndex + 1), 2300);
+    // ✅ HANDLE ERROR SAFELY
+    if (!data || data.success === false) {
+      showToast(data?.message || 'Verification failed — moving on', 'error');
+      setTimeout(() => renderQuestion(currentIndex + 1), 1500);
+      return;
     }
 
+    const { isCorrect, correctAnswer, earnedPoints, explanation } = data;
+
+    // Highlight answers
+    document.querySelectorAll('.option-btn').forEach(b => {
+      const val = decodeURIComponent(b.dataset.val);
+
+      if (val === correctAnswer) {
+        b.classList.add('correct');
+      } else if (val === selectedAnswer && !isCorrect) {
+        b.classList.add('wrong');
+      }
+    });
+
+    // Update score
+    if (isCorrect) {
+      totalScore += earnedPoints;
+      correctCount++;
+      bumpScore();
+    } else {
+      wrongCount++;
+    }
+
+    // Show feedback
+    showFeedback(isCorrect, earnedPoints, explanation);
+
+  } catch (err) {
+    console.error("VERIFY ERROR:", err);
+    showToast('Error verifying answer — continuing', 'error');
+  }
+
+  // Always move forward
+  setTimeout(() => renderQuestion(currentIndex + 1), 2300);
+}
     // ── Timeout Handler ───────────────────────────────────
     function onTimeout() {
       if (answerLocked) return;
