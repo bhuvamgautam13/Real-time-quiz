@@ -2,6 +2,7 @@ const Question = require('../models/Question');
 const Score = require('../models/Score');
 const User = require('../models/User');
 
+// ================= START QUIZ =================
 const startQuiz = async (req, res) => {
   try {
     const questions = await Question.aggregate([
@@ -21,7 +22,7 @@ const startQuiz = async (req, res) => {
     if (questions.length < 15) {
       return res.status(503).json({
         success: false,
-        message: `Database has only ${questions.length} questions. Need at least 15. Run npm run seed.`,
+        message: `Database has only ${questions.length} questions.`,
       });
     }
 
@@ -34,18 +35,25 @@ const startQuiz = async (req, res) => {
       success: true,
       questions: shuffledQuestions,
       totalQuestions: shuffledQuestions.length,
-      message: 'Quiz started! Good luck.',
     });
+
   } catch (error) {
     console.error('startQuiz error:', error);
-    res.status(500).json({ success: false, message: 'Error starting quiz. Please try again.' });
+    res.status(500).json({
+      success: false,
+      message: 'Error starting quiz.',
+    });
   }
 };
 
+// ================= VERIFY ANSWER =================
 const verifyAnswer = async (req, res) => {
   try {
+    console.log("REQ BODY:", req.body); // 🔥 DEBUG
+
     const { questionId, selectedAnswer, timeRemaining } = req.body;
 
+    // ✅ VALIDATION
     if (!questionId || selectedAnswer === undefined) {
       return res.status(400).json({
         success: false,
@@ -54,19 +62,27 @@ const verifyAnswer = async (req, res) => {
     }
 
     const question = await Question.findById(questionId);
+
     if (!question) {
-      return res.status(404).json({ success: false, message: 'Question not found.' });
+      return res.status(404).json({
+        success: false,
+        message: 'Question not found.',
+      });
     }
 
+    // ✅ CHECK ANSWER
     const isCorrect = question.correctAnswer === selectedAnswer;
 
+    // ✅ CALCULATE SCORE
     let earnedPoints = 0;
+
     if (isCorrect) {
       const remaining = Math.max(0, Math.min(60, timeRemaining || 0));
       const timeBonus = Math.floor((remaining / 60) * 5);
       earnedPoints = question.points + timeBonus;
     }
 
+    // async update (no await needed)
     Question.findByIdAndUpdate(questionId, {
       $inc: {
         timesAsked: 1,
@@ -74,19 +90,26 @@ const verifyAnswer = async (req, res) => {
       },
     }).exec();
 
+    // ✅ SUCCESS RESPONSE
     res.json({
       success: true,
       isCorrect,
       correctAnswer: question.correctAnswer,
-      explanation: question.explanation,
+      explanation: question.explanation || '',
       earnedPoints,
     });
+
   } catch (error) {
     console.error('verifyAnswer error:', error);
-    res.status(500).json({ success: false, message: 'Error verifying answer.' });
+
+    res.status(500).json({
+      success: false,
+      message: 'Error verifying answer.',
+    });
   }
 };
 
+// ================= SUBMIT SCORE =================
 const submitScore = async (req, res) => {
   try {
     const { points, correctAnswers, timeTaken } = req.body;
@@ -107,32 +130,37 @@ const submitScore = async (req, res) => {
     });
 
     const user = await User.findById(req.user._id);
+
     user.totalScore += points;
     user.gamesPlayed += 1;
     user.totalCorrectAnswers += correctAnswers;
+
     if (points > user.highScore) user.highScore = points;
+
     await user.save();
 
     res.json({
       success: true,
       message: 'Score submitted successfully!',
       score,
-      updatedStats: {
-        totalScore: user.totalScore,
-        gamesPlayed: user.gamesPlayed,
-        highScore: user.highScore,
-      },
     });
+
   } catch (error) {
     console.error('submitScore error:', error);
-    res.status(500).json({ success: false, message: 'Error submitting score.' });
+
+    res.status(500).json({
+      success: false,
+      message: 'Error submitting score.',
+    });
   }
 };
 
+// ================= MY SCORES =================
 const getMyScores = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
+
     const skip = (page - 1) * limit;
 
     const [scores, total] = await Promise.all([
@@ -154,10 +182,20 @@ const getMyScores = async (req, res) => {
         totalPages: Math.ceil(total / limit),
       },
     });
+
   } catch (error) {
     console.error('getMyScores error:', error);
-    res.status(500).json({ success: false, message: 'Error fetching scores.' });
+
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching scores.',
+    });
   }
 };
 
-module.exports = { startQuiz, verifyAnswer, submitScore, getMyScores };
+module.exports = {
+  startQuiz,
+  verifyAnswer,
+  submitScore,
+  getMyScores,
+};

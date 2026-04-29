@@ -129,25 +129,35 @@ async function onAnswer(encodedAnswer, btn) {
 
   try {
     const data = await apiRequest(
-      '/api/quiz/verify-answer', // ✅ FIXED ROUTE
+      '/api/quiz/verify-answer',
       'POST',
       {
         questionId: q._id,
-        selectedOption: selectedAnswer, // ✅ FIXED KEY
+        selectedAnswer: selectedAnswer ,
         timeRemaining: currentTimeRemaining
       }
     );
 
-    console.log("VERIFY RESPONSE:", data);
+    console.log("API RESPONSE:", data);
 
-    if (!data) throw new Error("No response");
+    // 🔥 FIX: HANDLE BACKEND FAILURE SAFELY
+    if (!data || data.success === false) {
+      console.error("Backend error:", data);
+
+      showToast(data?.message || "Verification failed — continuing", "error");
+
+      setTimeout(() => renderQuestion(currentIndex + 1), 1000);
+      return;
+    }
 
     const { isCorrect, correctAnswer, earnedPoints, explanation } = data;
 
     document.querySelectorAll('.option-btn').forEach(b => {
-      if (b.dataset.val === correctAnswer) b.classList.add('correct');
-      else if (b.dataset.val === selectedAnswer && !isCorrect)
+      if (b.dataset.val === correctAnswer) {
+        b.classList.add('correct');
+      } else if (b.dataset.val === selectedAnswer && !isCorrect) {
         b.classList.add('wrong');
+      }
     });
 
     if (isCorrect) {
@@ -163,7 +173,8 @@ async function onAnswer(encodedAnswer, btn) {
 
   } catch (err) {
     console.error("VERIFY ERROR:", err);
-    showToast('Error verifying answer', 'error');
+
+    showToast('Verification issue — moving on', 'error');
   }
 
   // 🔥 ALWAYS MOVE FORWARD (no freeze)
