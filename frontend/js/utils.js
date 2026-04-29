@@ -29,7 +29,7 @@ const logout = async () => {
 const apiRequest = async (url, method = 'GET', body = null) => {
   const token = getToken();
 
-  // 🔥 FIX: handle object input safely
+  // handle object input safely
   if (typeof method === 'object') {
     body = method.body || null;
     method = method.method || 'GET';
@@ -49,7 +49,15 @@ const apiRequest = async (url, method = 'GET', body = null) => {
     return null;
   }
 
-  return res.json();
+  // 🔥 FIX: handle HTML response safely
+  const text = await res.text();
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    console.error("NOT JSON RESPONSE:", text);
+    return null;
+  }
 };
 
 // NAVIGATION

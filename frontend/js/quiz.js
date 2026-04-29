@@ -1,5 +1,3 @@
-
-
 let questions = [], currentIndex = 0, totalScore = 0;
 let correctCount = 0, wrongCount = 0;
 let socket, currentTimeRemaining = 60, answerLocked = false;
@@ -15,6 +13,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   await loadQuestions();
 });
 
+// ================= SOCKET =================
 function connectSocket() {
   socket = io('/', {
     auth: { token: getToken() },
@@ -43,9 +42,12 @@ function connectSocket() {
   );
 }
 
+// ================= LOAD QUESTIONS =================
 async function loadQuestions() {
   try {
     const data = await apiRequest('/api/quiz/start', 'POST');
+
+    console.log("QUIZ START:", data);
 
     if (!data?.success) throw new Error();
 
@@ -53,6 +55,7 @@ async function loadQuestions() {
     quizStartTime = Date.now();
 
     document.getElementById('qTotal').textContent = questions.length;
+
     renderQuestion(0);
 
   } catch (err) {
@@ -61,12 +64,14 @@ async function loadQuestions() {
     showToast('Session expired. Please login again.', 'error');
 
     localStorage.removeItem('token');
+
     setTimeout(() => {
-      window.location.href = '/frontend/pages/login.html';
+      window.location.href = '/pages/login.html'; // ✅ FIXED
     }, 1500);
   }
 }
 
+// ================= RENDER QUESTION =================
 function renderQuestion(index) {
   if (index >= questions.length) return endQuiz();
 
@@ -102,12 +107,15 @@ function renderQuestion(index) {
   socket.emit('start-question', { questionIndex: index });
 }
 
+// ================= ANSWER HANDLER =================
 async function onAnswer(encodedAnswer, btn) {
   if (answerLocked) return;
 
   answerLocked = true;
 
   const selectedAnswer = decodeURIComponent(encodedAnswer);
+
+  console.log("CLICKED:", selectedAnswer);
 
   socket.emit('answer-submitted', {
     questionIndex: currentIndex,
@@ -121,14 +129,18 @@ async function onAnswer(encodedAnswer, btn) {
 
   try {
     const data = await apiRequest(
-      '/api/quiz/verify-answer',
+      '/api/quiz/verify-answer', // ✅ FIXED ROUTE
       'POST',
       {
         questionId: q._id,
-        selectedAnswer,
+        selectedOption: selectedAnswer, // ✅ FIXED KEY
         timeRemaining: currentTimeRemaining
       }
     );
+
+    console.log("VERIFY RESPONSE:", data);
+
+    if (!data) throw new Error("No response");
 
     const { isCorrect, correctAnswer, earnedPoints, explanation } = data;
 
@@ -150,13 +162,15 @@ async function onAnswer(encodedAnswer, btn) {
     showFeedback(isCorrect, earnedPoints, explanation);
 
   } catch (err) {
-    console.error(err);
+    console.error("VERIFY ERROR:", err);
     showToast('Error verifying answer', 'error');
   }
 
+  // 🔥 ALWAYS MOVE FORWARD (no freeze)
   setTimeout(() => renderQuestion(currentIndex + 1), 2300);
 }
 
+// ================= TIMEOUT =================
 function onTimeout() {
   if (answerLocked) return;
 
@@ -170,6 +184,7 @@ function onTimeout() {
   setTimeout(() => renderQuestion(currentIndex + 1), 2100);
 }
 
+// ================= TIMER =================
 function renderTimer(secs) {
   document.getElementById('timerText').textContent = secs;
 
@@ -183,6 +198,7 @@ function renderTimer(secs) {
     : ring.classList.remove('timer-danger');
 }
 
+// ================= FEEDBACK =================
 function showFeedback(ok, pts, note) {
   const bar = document.getElementById('feedbackBar');
 
@@ -195,6 +211,7 @@ function showFeedback(ok, pts, note) {
     ok ? `+${pts} pts` : '+0 pts';
 }
 
+// ================= END QUIZ =================
 async function endQuiz() {
   const timeTaken = Math.floor((Date.now() - quizStartTime) / 1000);
 
@@ -237,6 +254,7 @@ async function endQuiz() {
   }
 }
 
+// ================= LIVE RANK =================
 function updateLiveRank(leaderboard) {
   const me = getUser();
   if (!me) return;
