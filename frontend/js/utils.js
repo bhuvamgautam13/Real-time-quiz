@@ -29,6 +29,12 @@ const logout = async () => {
 const apiRequest = async (url, method = 'GET', body = null) => {
   const token = getToken();
 
+  // 🔥 FIX: handle object input safely
+  if (typeof method === 'object') {
+    body = method.body || null;
+    method = method.method || 'GET';
+  }
+
   const res = await fetch(url, {
     method,
     headers: {
