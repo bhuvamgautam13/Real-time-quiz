@@ -4,7 +4,7 @@ const User = require('../models/User');
 
 const protect = async (req, res, next) => {
   let token;
-
+  console.log("TOKEN RECEIVED:", token);
 
   if (req.headers.authorization?.startsWith('Bearer ')) {
     token = req.headers.authorization.split(' ')[1];
@@ -47,7 +47,7 @@ const protect = async (req, res, next) => {
       error.name === 'TokenExpiredError'
         ? 'Session expired. Please log in again.'
         : 'Invalid authentication token.';
-
+     console.log("JWT ERROR:", error.message);
     return res.status(401).json({ success: false, message });
   }
 };
