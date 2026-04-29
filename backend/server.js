@@ -75,7 +75,7 @@ app.use((req, res, next) => {
 });
 
 // START
-const PORT = process.env.PORT || 5000;
+const PORT =  process.env.PORT || 5000;
 
 connectDB().then(() => {
   httpServer.listen(PORT, () => {

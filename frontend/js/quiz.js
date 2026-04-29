@@ -1,4 +1,4 @@
-import { apiRequest, getToken, requireAuth, getUser, showToast } from "./utils.js";
+
 
 let questions = [], currentIndex = 0, totalScore = 0;
 let correctCount = 0, wrongCount = 0;
